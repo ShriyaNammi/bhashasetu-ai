@@ -9,6 +9,7 @@ import {
   Mic, 
   MicOff,
   Volume2, 
+  VolumeX,
   Settings as SettingsIcon, 
   History as HistoryIcon,
   ChevronRight, 
@@ -545,6 +546,7 @@ function AppContent() {
   const [persona, setPersona] = useState<string>("general");
   const [fontSize, setFontSize] = useState<"normal" | "large" | "xl">("large"); // Default to large for accessibility
   const [highContrast, setHighContrast] = useState<boolean>(false);
+  const [voiceMuted, setVoiceMuted] = useState<boolean>(false);
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -586,8 +588,10 @@ function AppContent() {
     const savedFontSize = localStorage.getItem("bs_fontSize");
     const savedContrast = localStorage.getItem("bs_contrast");
     const savedHistory = localStorage.getItem("bs_history");
+    const savedMute = localStorage.getItem("bs_mute");
 
     if (savedLang) setSelectedLang(savedLang);
+    if (savedMute) setVoiceMuted(savedMute === "true");
     if (savedPersona) setPersona(savedPersona);
     if (savedFontSize) setFontSize(savedFontSize as any);
     if (savedContrast) setHighContrast(savedContrast === "true");
@@ -616,7 +620,7 @@ function AppContent() {
 
   // Text-To-Speech (TTS)
   const speakText = (text: string) => {
-    if (!text) return;
+    if (!text || voiceMuted) return;
     window.speechSynthesis.cancel(); // Stop any running speech
     
     const utterance = new SpeechSynthesisUtterance(text);
@@ -1466,7 +1470,7 @@ function AppContent() {
 
                 <div className="flex flex-col gap-2">
                   <h3 className="text-base font-bold text-navy">{t("label_speech_config")}</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-1">
                     <div className={`p-4 rounded-xl border ${highContrast ? "border-zinc-800" : "border-slate-200"}`}>
                       <span className="block text-xs font-bold text-slate-400 uppercase mb-2">{t("label_voice_rate")}</span>
                       <span className={`text-xs font-semibold block mb-2 ${highContrast ? "text-zinc-300" : "text-slate-600"}`}>
@@ -1485,6 +1489,21 @@ function AppContent() {
                           <option key={lang} value={lang}>{lang}</option>
                         ))}
                       </select>
+                    </div>
+
+                    <div className={`p-4 rounded-xl border ${highContrast ? "border-zinc-800" : "border-slate-200"}`}>
+                      <span className="block text-xs font-bold text-slate-400 uppercase mb-2">Voice Readback</span>
+                      <button 
+                        onClick={() => {
+                          const newMute = !voiceMuted;
+                          setVoiceMuted(newMute);
+                          localStorage.setItem("bs_mute", String(newMute));
+                          if (newMute) window.speechSynthesis.cancel();
+                        }}
+                        className={`w-full px-4 py-2 rounded-xl text-xs font-bold transition-all ${voiceMuted ? "bg-red-500 text-white hover:bg-red-600" : "bg-navy text-white hover:bg-blue-900"}`}
+                      >
+                        {voiceMuted ? "Unmute Voice" : "Mute Voice"}
+                      </button>
                     </div>
                   </div>
                 </div>
