@@ -930,7 +930,7 @@ function AppContent() {
           </div>
           
           <div className="flex items-center gap-2">
-            <div className="flex border rounded-lg p-0.5 bg-slate-100 dark:bg-zinc-800">
+            <div className="flex border rounded-lg p-0.5 bg-slate-100 border-slate-200">
               <button 
                 onClick={() => savePreference("bs_fontSize", "normal")} 
                 className={`px-2 py-1 rounded text-xs font-bold transition-all ${fontSize === "normal" ? "bg-white text-navy shadow" : "text-slate-500"}`}
@@ -1114,12 +1114,12 @@ function AppContent() {
                   </div>
                   <div className={`flex-grow p-4 rounded-2xl border flex flex-col gap-3 justify-between ${highContrast ? "bg-zinc-900 border-zinc-800" : "bg-slate-50 border-slate-100"}`}>
                     {explainSummary && (
-                      <div className="border-b pb-2 border-slate-200 dark:border-zinc-800">
+                      <div className={`border-b pb-2 ${highContrast ? "border-zinc-800" : "border-slate-200"}`}>
                         <span className="text-xs font-bold text-slate-400 block uppercase">{t("label_original_summary")}</span>
                         <p className={`${getFontSizeClass("text")} font-bold text-saffron`}>{explainSummary}</p>
                       </div>
                     )}
-                    <p className={`${getFontSizeClass("text")} font-medium text-slate-800 dark:text-zinc-100`}>
+                    <p className={`${getFontSizeClass("text")} font-medium ${highContrast ? "text-zinc-100" : "text-slate-800"}`}>
                       {explainOutput || "Simplified explanation will appear here in your target language."}
                     </p>
                   </div>
@@ -1177,7 +1177,7 @@ function AppContent() {
                       </button>
                     </div>
                   ) : (
-                    <div className="border-2 border-dashed border-slate-200 dark:border-zinc-800 rounded-2xl p-10 flex flex-col items-center justify-center gap-3 bg-slate-50 dark:bg-zinc-900 transition-all">
+                    <div className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center gap-3 transition-all ${highContrast ? "border-zinc-800 bg-zinc-900" : "border-slate-200 bg-slate-50"}`}>
                       <Upload className="h-10 w-10 text-slate-300" />
                       <p className="text-sm font-semibold text-slate-500 text-center">Click Camera Mode above or upload a document photo</p>
                       <label className="cursor-pointer bg-navy text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-900 transition-all shadow-sm">
@@ -1218,14 +1218,14 @@ function AppContent() {
                       <div className="flex flex-col gap-4">
                         <div>
                           <span className="text-xs font-bold text-saffron block uppercase mb-1">Simple Explanation</span>
-                          <p className={`${getFontSizeClass("text")} font-semibold text-slate-800 dark:text-zinc-100`}>{scanExplanation}</p>
+                          <p className={`${getFontSizeClass("text")} font-semibold ${highContrast ? "text-zinc-100" : "text-slate-800"}`}>{scanExplanation}</p>
                         </div>
                         {scanActions.length > 0 && (
                           <div>
                             <span className="text-xs font-bold text-indian-green block uppercase mb-2">{t("label_action_items")}</span>
                             <ul className="flex flex-col gap-2">
                               {scanActions.map((action, i) => (
-                                <li key={i} className="flex gap-2 items-start text-sm sm:text-base font-semibold text-slate-700 dark:text-zinc-200">
+                                <li key={i} className={`flex gap-2 items-start text-sm sm:text-base font-semibold ${highContrast ? "text-zinc-200" : "text-slate-700"}`}>
                                   <CheckCircle className="h-5 w-5 text-indian-green shrink-0 mt-0.5" />
                                   <span>{action}</span>
                                 </li>
@@ -1234,13 +1234,13 @@ function AppContent() {
                           </div>
                         )}
                         {scanTranslation && (
-                          <div className="border-t pt-3 border-slate-200 dark:border-zinc-800">
+                          <div className={`border-t pt-3 ${highContrast ? "border-zinc-800" : "border-slate-200"}`}>
                             <span className="text-xs font-bold text-slate-400 block uppercase mb-1">{t("label_direct_translation")}</span>
                             <p className="text-xs sm:text-sm text-slate-500 font-medium whitespace-pre-wrap">{scanTranslation}</p>
                           </div>
                         )}
                         {ocrText && (
-                          <div className="border-t pt-3 border-slate-200 dark:border-zinc-800">
+                          <div className={`border-t pt-3 ${highContrast ? "border-zinc-800" : "border-slate-200"}`}>
                             <span className="text-xs font-bold text-slate-400 block uppercase mb-1">{t("label_extracted_text")}</span>
                             <p className="text-xs text-slate-400 font-mono whitespace-pre-wrap">{ocrText}</p>
                           </div>
@@ -1313,18 +1313,18 @@ function AppContent() {
                     {careerResults.length > 0 ? (
                       careerResults.map((career, idx) => (
                         <div key={idx} className={`p-4 rounded-2xl border flex flex-col gap-3 ${highContrast ? "bg-zinc-900 border-zinc-800" : "bg-slate-50 border-slate-100"}`}>
-                          <div className="flex items-center justify-between border-b pb-2 border-slate-200 dark:border-zinc-800">
+                          <div className={`flex items-center justify-between border-b pb-2 ${highContrast ? "border-zinc-800" : "border-slate-200"}`}>
                             <h3 className="text-lg font-bold text-navy">{career.title}</h3>
                             <span className="text-xs bg-saffron text-white font-extrabold px-2 py-0.5 rounded-full">{career.stream}</span>
                           </div>
                           
-                          <p className="text-sm font-semibold text-slate-700 dark:text-zinc-300">{career.description}</p>
+                          <p className={`text-sm font-semibold ${highContrast ? "text-zinc-300" : "text-slate-700"}`}>{career.description}</p>
                           
                           <div>
                             <span className="text-xs font-bold text-slate-400 block uppercase mb-1">{t("label_career_skills")}</span>
                             <div className="flex flex-wrap gap-1.5">
                               {career.required_skills.map((skill: string, sIdx: number) => (
-                                <span key={sIdx} className="text-xs bg-slate-200 dark:bg-zinc-800 px-2.5 py-1 rounded-md font-bold text-slate-800 dark:text-zinc-200">{skill}</span>
+                                <span key={sIdx} className={`text-xs px-2.5 py-1 rounded-md font-bold ${highContrast ? "bg-zinc-800 text-zinc-200" : "bg-slate-200 text-slate-800"}`}>{skill}</span>
                               ))}
                             </div>
                           </div>
@@ -1333,7 +1333,7 @@ function AppContent() {
                             <span className="text-xs font-bold text-slate-400 block uppercase mb-1">{t("label_career_roadmap")}</span>
                             <div className="flex flex-col gap-2 mt-1">
                               {career.roadmap.map((step: string, rIdx: number) => (
-                                <div key={rIdx} className="flex gap-2 items-center text-sm font-semibold text-slate-700 dark:text-zinc-300">
+                                <div key={rIdx} className={`flex gap-2 items-center text-sm font-semibold ${highContrast ? "text-zinc-300" : "text-slate-700"}`}>
                                   <div className="h-5 w-5 rounded-full bg-navy text-white flex items-center justify-center text-xs shrink-0 font-bold">{rIdx + 1}</div>
                                   <span>{step}</span>
                                 </div>
@@ -1389,15 +1389,15 @@ function AppContent() {
                   {history.length > 0 ? (
                     history.map((item) => (
                       <div key={item.id} className={`p-4 rounded-2xl border flex flex-col gap-2 ${highContrast ? "bg-zinc-900 border-zinc-800" : "bg-slate-50 border-slate-100"}`}>
-                        <div className="flex justify-between items-center text-xs border-b pb-1.5 border-slate-200 dark:border-zinc-800">
+                        <div className={`flex justify-between items-center text-xs border-b pb-1.5 ${highContrast ? "border-zinc-800" : "border-slate-200"}`}>
                           <span className="font-extrabold uppercase text-navy">{item.type}</span>
                           <span className="text-slate-400 font-medium">{item.timestamp}</span>
                         </div>
                         <div className="text-sm">
                           <p className="font-semibold text-slate-500 mb-1">Input / इनपुट:</p>
-                          <p className="font-bold text-slate-800 dark:text-zinc-100">{item.input}</p>
+                          <p className={`font-bold ${highContrast ? "text-zinc-100" : "text-slate-800"}`}>{item.input}</p>
                         </div>
-                        <div className="text-sm bg-white dark:bg-black p-3 rounded-xl border border-slate-100 dark:border-zinc-800 mt-1">
+                        <div className={`text-sm p-3 rounded-xl border mt-1 ${highContrast ? "bg-black border-zinc-800 text-white" : "bg-white border-slate-100 text-navy"}`}>
                           <p className="font-semibold text-slate-500 mb-1">Output / परिणाम:</p>
                           {item.type === "Translation" && (
                             <p className="font-bold text-navy">{item.output.translated}</p>
@@ -1405,14 +1405,14 @@ function AppContent() {
                           {item.type === "Explanation" && (
                             <div className="flex flex-col gap-1.5">
                               <p className="font-bold text-saffron">{item.output.summary}</p>
-                              <p className="font-semibold text-slate-700 dark:text-zinc-300">{item.output.explanation}</p>
+                              <p className={`font-semibold ${highContrast ? "text-zinc-300" : "text-slate-700"}`}>{item.output.explanation}</p>
                             </div>
                           )}
                           {item.type === "Career Guide" && (
                             <p className="font-bold text-indian-green">{item.output.careers.map((c: any) => c.title).join(", ")}</p>
                           )}
                           {item.type === "Scan Document" && (
-                            <p className="font-semibold text-slate-700 dark:text-zinc-300">{item.output.explanation}</p>
+                            <p className={`font-semibold ${highContrast ? "text-zinc-300" : "text-slate-700"}`}>{item.output.explanation}</p>
                           )}
                         </div>
                       </div>
@@ -1469,7 +1469,7 @@ function AppContent() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-1">
                     <div className={`p-4 rounded-xl border ${highContrast ? "border-zinc-800" : "border-slate-200"}`}>
                       <span className="block text-xs font-bold text-slate-400 uppercase mb-2">{t("label_voice_rate")}</span>
-                      <span className="text-xs font-semibold text-slate-600 dark:text-zinc-300 block mb-2">
+                      <span className={`text-xs font-semibold block mb-2 ${highContrast ? "text-zinc-300" : "text-slate-600"}`}>
                         {persona === "senior" ? "Slow and Clear (0.8x)" : "Standard (1.0x)"} (Determined by Persona)
                       </span>
                     </div>
