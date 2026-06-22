@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 import google.generativeai as genai
+from google.api_core.exceptions import ResourceExhausted, GoogleAPICallError
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -75,12 +76,45 @@ class CareerResponse(BaseModel):
     careers: List[CareerItem]
 
 # ----------------------------------------------------
-# Helper to get Gemini Model
+# Helper for Generation with Fallback and Quota Handling
 # ----------------------------------------------------
-def get_gemini_model(model_name: str = "gemini-2.5-flash"):
+def generate_content_with_fallback(prompt: str, image_part = None, generation_config = None):
     if not GEMINI_API_KEY:
         raise HTTPException(status_code=500, detail="Gemini API Key is not configured on the server.")
-    return genai.GenerativeModel(model_name)
+        
+    models_to_try = ["gemini-2.5-flash", "gemini-2.0-flash"]
+    last_error = None
+    
+    for model_name in models_to_try:
+        try:
+            logger.info(f"Attempting generation with model: {model_name}")
+            model = genai.GenerativeModel(model_name)
+            
+            if image_part:
+                inputs = [image_part, prompt]
+            else:
+                inputs = [prompt]
+                
+            response = model.generate_content(
+                inputs,
+                generation_config=generation_config
+            )
+            return response
+        except ResourceExhausted as e:
+            logger.warning(f"Quota exceeded for model {model_name}: {e}. Retrying with next model...")
+            last_error = e
+        except Exception as e:
+            logger.warning(f"Error with model {model_name}: {e}. Retrying with next model...")
+            last_error = e
+
+    # If all models failed, raise clean exception
+    error_msg = str(last_error)
+    if "Quota exceeded" in error_msg or isinstance(last_error, ResourceExhausted):
+        raise HTTPException(
+            status_code=429,
+            detail="Gemini API rate limit exceeded (5 requests/minute). Please wait 10 seconds and try again."
+        )
+    raise HTTPException(status_code=500, detail=f"Gemini API error: {error_msg}")
 
 # ----------------------------------------------------
 # Endpoints
@@ -93,7 +127,6 @@ def read_root():
 @app.post("/api/translate", response_model=TranslateResponse)
 async def translate_text(req: TranslateRequest):
     try:
-        model = get_gemini_model()
         prompt = f"""
         You are a highly accurate translation assistant for Indian languages.
         Translate the following text into "{req.target_lang}".
@@ -107,21 +140,21 @@ async def translate_text(req: TranslateRequest):
             "detected_lang": "detected source language name here"
         }}
         """
-        response = model.generate_content(
+        response = generate_content_with_fallback(
             prompt,
             generation_config={"response_mime_type": "application/json"}
         )
         data = json.loads(response.text)
         return TranslateResponse(**data)
+    except HTTPException as he:
+        raise he
     except Exception as e:
-        logger.error(f"Error in translate: {e}")
+        logger.error(f"Error in translate endpoint: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/explain", response_model=ExplainResponse)
 async def explain_text(req: ExplainRequest):
     try:
-        model = get_gemini_model()
-        
         # Define persona guidance
         persona_guide = {
             "child": "Explain this to a 10-year-old child using simple language, stories, or analogies. Avoid jargon.",
@@ -144,14 +177,16 @@ async def explain_text(req: ExplainRequest):
             "original_summary": "one-sentence summary of the original text in target language"
         }}
         """
-        response = model.generate_content(
+        response = generate_content_with_fallback(
             prompt,
             generation_config={"response_mime_type": "application/json"}
         )
         data = json.loads(response.text)
         return ExplainResponse(**data)
+    except HTTPException as he:
+        raise he
     except Exception as e:
-        logger.error(f"Error in explain: {e}")
+        logger.error(f"Error in explain endpoint: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/document", response_model=DocumentResponse)
@@ -161,8 +196,6 @@ async def document_understand(
     persona: str = Form("general")
 ):
     try:
-        model = get_gemini_model()
-        
         contents = await file.read()
         image_part = {
             "mime_type": file.content_type,
@@ -186,20 +219,22 @@ async def document_understand(
             "action_items": ["action item 1", "action item 2", ...]
         }}
         """
-        response = model.generate_content(
-            [image_part, prompt],
+        response = generate_content_with_fallback(
+            prompt,
+            image_part=image_part,
             generation_config={"response_mime_type": "application/json"}
         )
         data = json.loads(response.text)
         return DocumentResponse(**data)
+    except HTTPException as he:
+        raise he
     except Exception as e:
-        logger.error(f"Error in document understanding: {e}")
+        logger.error(f"Error in document endpoint: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/career", response_model=CareerResponse)
 async def career_guide(req: CareerRequest):
     try:
-        model = get_gemini_model()
         prompt = f"""
         You are BhashaSetu's Emerging Career Guide Agent.
         Provide career guidance for the query: "{req.query}".
@@ -221,14 +256,16 @@ async def career_guide(req: CareerRequest):
             ]
         }}
         """
-        response = model.generate_content(
+        response = generate_content_with_fallback(
             prompt,
             generation_config={"response_mime_type": "application/json"}
         )
         data = json.loads(response.text)
         return CareerResponse(**data)
+    except HTTPException as he:
+        raise he
     except Exception as e:
-        logger.error(f"Error in career guide: {e}")
+        logger.error(f"Error in career endpoint: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
